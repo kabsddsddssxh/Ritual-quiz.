@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ritual Quiz</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Ritual of the Day 🔥</h1>
+        <h2>{{ ritual }}</h2>
+
+        <form id="quizForm">
+            {% for q in questions %}
+            <div class="question">
+                <p>{{ q.question }}</p>
+                {% for opt in q.options %}
+                <label>
+                    <input type="radio" name="q{{ loop.index0 }}" value="{{ opt }}"> {{ opt }}
+                </label>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            <button type="button" onclick="submitQuiz()">Submit</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function submitQuiz() {
+            const questions = [];
+            const form = document.getElementById("quizForm");
+            const qDivs = form.getElementsByClassName("question");
+
+            for(let i=0; i<qDivs.length; i++){
+                const selected = qDivs[i].querySelector('input[type="radio"]:checked');
+                const answer = "{{ questions[i].answer }}";
+                questions.push({selected: selected ? selected.value : "", answer: answer});
+            }
+
+            fetch("/check", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({questions})
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("result").innerHTML = `<h3>Your Score: ${data.score}/${questions.length}</h3>`;
+            });
+        }
+    </script>
+</body>
+</html>
